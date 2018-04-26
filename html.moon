@@ -1,4 +1,11 @@
 pair = ->
+  void = do -- gotta love this syntax ♥
+    {key,true for key in *{
+      "area", "base", "br", "col"
+      "command", "embed", "hr", "img"
+      "input", "keygen", "link", "meta"
+      "param", "source", "track", "wbr"
+    }}
   environment, buffer = {}, {
     insert: table.insert
     concat: table.concat
@@ -41,16 +48,15 @@ pair = ->
       _ENV[key] or (...) ->
         buffer\insert "<#{key} #{attrib{...}}>"
         handle{...}
-        buffer\insert "</#{key}>"
+        buffer\insert "</#{key}>" unless void[key]
   }
   environment, buffer
 
 render = (fnc) ->
-  local hlp -- Helper function
   env, buf = pair!
-  do
+  hlp = do
     _ENV = env
-    hlp = -> aaaaa -- needs to access a global to get the environment upvalue
+    -> aaaaa -- needs to access a global to get the environment upvalue
   assert(type(fnc)=='function', 'wrong argument to render, expecting function')
   debug.upvaluejoin(fnc, 1, hlp, 1) -- Set environment
   fnc!

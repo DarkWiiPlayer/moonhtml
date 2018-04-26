@@ -1,5 +1,34 @@
 local pair
 pair = function()
+  local void
+  do
+    do
+      local _tbl_0 = { }
+      local _list_0 = {
+        "area",
+        "base",
+        "br",
+        "col",
+        "command",
+        "embed",
+        "hr",
+        "img",
+        "input",
+        "keygen",
+        "link",
+        "meta",
+        "param",
+        "source",
+        "track",
+        "wbr"
+      }
+      for _index_0 = 1, #_list_0 do
+        local key = _list_0[_index_0]
+        _tbl_0[key] = true
+      end
+      void = _tbl_0
+    end
+  end
   local environment, buffer = { }, {
     insert = table.insert,
     concat = table.concat,
@@ -70,7 +99,9 @@ pair = function()
         handle({
           ...
         })
-        return buffer:insert("</" .. tostring(key) .. ">")
+        if not (void[key]) then
+          return buffer:insert("</" .. tostring(key) .. ">")
+        end
       end
     end
   })
@@ -78,8 +109,8 @@ pair = function()
 end
 local render
 render = function(fnc)
-  local hlp
   local env, buf = pair()
+  local hlp
   do
     local _ENV = env
     hlp = function()
