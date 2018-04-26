@@ -1,24 +1,27 @@
+void = {key,true for key in *{
+  "area", "base", "br", "col"
+  "command", "embed", "hr", "img"
+  "input", "keygen", "link", "meta"
+  "param", "source", "track", "wbr"
+}}
+
+escapes = {
+  ['&']: '&amp;'
+  ['<']: '&lt;'
+  ['>']: '&gt;'
+  ['"']: '&quot;'
+  ["'"]: '&#039;'
+}
+
 pair = ->
-  void = do -- gotta love this syntax ♥
-    {key,true for key in *{
-      "area", "base", "br", "col"
-      "command", "embed", "hr", "img"
-      "input", "keygen", "link", "meta"
-      "param", "source", "track", "wbr"
-    }}
   environment, buffer = {}, {
     insert: table.insert
     concat: table.concat
     escape: (value) =>
-      escaped = tostring(value)\gsub "[<>&]", {
-        ['&']: '&amp;'
-        ['<']: '&lt;'
-        ['>']: '&gt;'
-        ['"']: '&quot;'
-        ["'"]: '&#039;'
-      }
+      escaped = tostring(value)\gsub "[<>&]", escapes
       @insert escaped
   }
+
   attrib = (args) ->
     res = setmetatable {}, __tostring: =>
       table.concat ["#{key}=\"#{value}\"" for key, value in pairs(@)], ' '
@@ -38,8 +41,10 @@ pair = ->
           arg!
         else
           buffer\insert tostring arg
+
   environment.raw = (text) ->
     buffer\insert text
+
   environment.text = (text) ->
     buffer\escape text
 
@@ -50,16 +55,17 @@ pair = ->
         handle{...}
         buffer\insert "</#{key}>" unless void[key]
   }
-  environment, buffer
+  return environment, buffer
+
 
 render = (fnc) ->
   env, buf = pair!
-  hlp = do
+  hlp = do -- gotta love this syntax ♥
     _ENV = env
     -> aaaaa -- needs to access a global to get the environment upvalue
   assert(type(fnc)=='function', 'wrong argument to render, expecting function')
   debug.upvaluejoin(fnc, 1, hlp, 1) -- Set environment
   fnc!
-  buf\concat '\n'
+  return buf\concat '\n'
 
 {:render, :pair}
