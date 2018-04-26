@@ -24,12 +24,14 @@ pair = ->
 
   attrib = (args) ->
     res = setmetatable {}, __tostring: =>
-      table.concat ["#{key}=\"#{value}\"" for key, value in pairs(@)], ' '
+      tab = ["#{key}=\"#{value}\"" for key, value in pairs(@) when type(value)=='string']
+      #tab > 0 and ' '..table.concat(tab,' ') or ''
     for arg in *args
       if type(arg) == 'table'
         for key, value in pairs(arg)
           if type(key)=='string'
             res[key] = value
+            r = true
     return res
 
   handle = (args) ->
@@ -51,7 +53,7 @@ pair = ->
   setmetatable environment, {
     __index: (key) =>
       _ENV[key] or (...) ->
-        buffer\insert "<#{key} #{attrib{...}}>"
+        buffer\insert "<#{key}#{attrib{...}}>"
         handle{...}
         buffer\insert "</#{key}>" unless void[key]
   }

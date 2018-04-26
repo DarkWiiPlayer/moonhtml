@@ -1,45 +1,44 @@
+local void
+do
+  local _tbl_0 = { }
+  local _list_0 = {
+    "area",
+    "base",
+    "br",
+    "col",
+    "command",
+    "embed",
+    "hr",
+    "img",
+    "input",
+    "keygen",
+    "link",
+    "meta",
+    "param",
+    "source",
+    "track",
+    "wbr"
+  }
+  for _index_0 = 1, #_list_0 do
+    local key = _list_0[_index_0]
+    _tbl_0[key] = true
+  end
+  void = _tbl_0
+end
+local escapes = {
+  ['&'] = '&amp;',
+  ['<'] = '&lt;',
+  ['>'] = '&gt;',
+  ['"'] = '&quot;',
+  ["'"] = '&#039;'
+}
 local pair
 pair = function()
-  local void
-  do
-    do
-      local _tbl_0 = { }
-      local _list_0 = {
-        "area",
-        "base",
-        "br",
-        "col",
-        "command",
-        "embed",
-        "hr",
-        "img",
-        "input",
-        "keygen",
-        "link",
-        "meta",
-        "param",
-        "source",
-        "track",
-        "wbr"
-      }
-      for _index_0 = 1, #_list_0 do
-        local key = _list_0[_index_0]
-        _tbl_0[key] = true
-      end
-      void = _tbl_0
-    end
-  end
   local environment, buffer = { }, {
     insert = table.insert,
     concat = table.concat,
     escape = function(self, value)
-      local escaped = tostring(value):gsub("[<>&]", {
-        ['&'] = '&amp;',
-        ['<'] = '&lt;',
-        ['>'] = '&gt;',
-        ['"'] = '&quot;',
-        ["'"] = '&#039;'
-      })
+      local escaped = tostring(value):gsub("[<>&]", escapes)
       return self:insert(escaped)
     end
   }
@@ -47,15 +46,19 @@ pair = function()
   attrib = function(args)
     local res = setmetatable({ }, {
       __tostring = function(self)
-        return table.concat((function()
+        local tab
+        do
           local _accum_0 = { }
           local _len_0 = 1
           for key, value in pairs(self) do
-            _accum_0[_len_0] = tostring(key) .. "=\"" .. tostring(value) .. "\""
-            _len_0 = _len_0 + 1
+            if type(value) == 'string' then
+              _accum_0[_len_0] = tostring(key) .. "=\"" .. tostring(value) .. "\""
+              _len_0 = _len_0 + 1
+            end
           end
-          return _accum_0
-        end)(), ' ')
+          tab = _accum_0
+        end
+        return #tab > 0 and ' ' .. table.concat(tab, ' ') or ''
       end
     })
     for _index_0 = 1, #args do
@@ -64,6 +67,7 @@ pair = function()
         for key, value in pairs(arg) do
           if type(key) == 'string' then
             res[key] = value
+            local r = true
           end
         end
       end
@@ -93,7 +97,7 @@ pair = function()
   setmetatable(environment, {
     __index = function(self, key)
       return _ENV[key] or function(...)
-        buffer:insert("<" .. tostring(key) .. " " .. tostring(attrib({
+        buffer:insert("<" .. tostring(key) .. tostring(attrib({
           ...
         })) .. ">")
         handle({
