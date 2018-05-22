@@ -43,7 +43,8 @@ pair = function(buffer)
   local environment = { }
   local escape
   escape = function(value)
-    return tostring(value):gsub([[[<>&]'"]], escapes)
+    local res = tostring(value):gsub([[[<>&]'"]], escapes)
+    return res
   end
   local attrib
   attrib = function(args)
@@ -54,7 +55,7 @@ pair = function(buffer)
           local _accum_0 = { }
           local _len_0 = 1
           for key, value in pairs(self) do
-            if type(value) == 'string' then
+            if type(value) == 'string' or type(value) == 'number' then
               _accum_0[_len_0] = tostring(key) .. "=\"" .. tostring(value) .. "\""
               _len_0 = _len_0 + 1
             end
@@ -95,20 +96,23 @@ pair = function(buffer)
     return table.insert(buffer, text)
   end
   environment.text = function(text)
-    return table.insert(buffer, escape(text))
+    return table.insert(buffer, (escape(text)))
+  end
+  environment.tag = function(tagname, ...)
+    table.insert(buffer, "<" .. tostring(tagname) .. tostring(attrib({
+      ...
+    })) .. ">")
+    handle({
+      ...
+    })
+    if not (void[key]) then
+      return table.insert(buffer, "</" .. tostring(tagname) .. ">")
+    end
   end
   setmetatable(environment, {
     __index = function(self, key)
       return _ENV[key] or function(...)
-        table.insert(buffer, "<" .. tostring(key) .. tostring(attrib({
-          ...
-        })) .. ">")
-        handle({
-          ...
-        })
-        if not (void[key]) then
-          return table.insert(buffer, "</" .. tostring(key) .. ">")
-        end
+        return environment.tag(key, ...)
       end
     end
   })

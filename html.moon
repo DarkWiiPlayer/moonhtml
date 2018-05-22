@@ -19,11 +19,12 @@ pair= (buffer = {}) ->
 
   environment = {}
   escape = (value) ->
-    tostring(value)\gsub [[[<>&]'"]], escapes
+    res = tostring(value)\gsub [[[<>&]'"]], escapes
+    res
 
   attrib = (args) ->
     res = setmetatable {}, __tostring: =>
-      tab = ["#{key}=\"#{value}\"" for key, value in pairs(@) when type(value)=='string']
+      tab = ["#{key}=\"#{value}\"" for key, value in pairs(@) when type(value)=='string' or type(value)=='number']
       #tab > 0 and ' '..table.concat(tab,' ') or ''
     for arg in *args
       if type(arg) == 'table'
@@ -47,14 +48,18 @@ pair= (buffer = {}) ->
     table.insert buffer, text
 
   environment.text = (text) ->
-    table.insert buffer, escape text
+    table.insert buffer, (escape text)
+
+  environment.tag = (tagname, ...) ->
+    table.insert buffer, "<#{tagname}#{attrib{...}}>"
+    handle{...}
+    table.insert buffer, "</#{tagname}>" unless void[key]
+
 
   setmetatable environment, {
     __index: (key) =>
       _ENV[key] or (...) ->
-        table.insert buffer, "<#{key}#{attrib{...}}>"
-        handle{...}
-        table.insert buffer, "</#{key}>" unless void[key]
+        environment.tag(key, ...)
   }
   return environment, buffer
 
