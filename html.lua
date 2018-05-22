@@ -33,15 +33,18 @@ local escapes = {
   ["'"] = '&#039;'
 }
 local pair
-pair = function()
-  local environment, buffer = { }, {
-    insert = table.insert,
-    concat = table.concat,
-    escape = function(self, value)
-      local escaped = tostring(value):gsub("[<>&]", escapes)
-      return self:insert(escaped)
-    end
-  }
+pair = function(buffer)
+  if buffer == nil then
+    buffer = { }
+  end
+  if type(buffer) ~= 'table' then
+    error(2, "Argument must be a table or nil")
+  end
+  local environment = { }
+  local escape
+  escape = function(value)
+    return tostring(value):gsub([[[<>&]'"]], escapes)
+  end
   local attrib
   attrib = function(args)
     local res = setmetatable({ }, {
@@ -84,35 +87,35 @@ pair = function()
       elseif 'function' == _exp_0 then
         arg()
       else
-        buffer:insert(tostring(arg))
+        table.insert(buffer, tostring(arg))
       end
     end
   end
   environment.raw = function(text)
-    return buffer:insert(text)
+    return table.insert(buffer, text)
   end
   environment.text = function(text)
-    return buffer:escape(text)
+    return table.insert(buffer, escape(text))
   end
   setmetatable(environment, {
     __index = function(self, key)
       return _ENV[key] or function(...)
-        buffer:insert("<" .. tostring(key) .. tostring(attrib({
+        table.insert(buffer, "<" .. tostring(key) .. tostring(attrib({
           ...
         })) .. ">")
         handle({
           ...
         })
         if not (void[key]) then
-          return buffer:insert("</" .. tostring(key) .. ">")
+          return table.insert(buffer, "</" .. tostring(key) .. ">")
         end
       end
     end
   })
   return environment, buffer
 end
-local render
-render = function(fnc)
+local build
+build = function(fnc)
   local env, buf = pair()
   local hlp
   do
@@ -124,9 +127,14 @@ render = function(fnc)
   assert(type(fnc) == 'function', 'wrong argument to render, expecting function')
   debug.upvaluejoin(fnc, 1, hlp, 1)
   fnc()
-  return buf:concat('\n')
+  return buf
+end
+local render
+render = function(fnc)
+  return table.concat(build(fnc), '\n')
 end
 return {
   render = render,
+  build = build,
   pair = pair
 }

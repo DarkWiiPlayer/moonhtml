@@ -13,14 +13,13 @@ escapes = {
   ["'"]: '&#039;'
 }
 
-pair = ->
-  environment, buffer = {}, {
-    insert: table.insert
-    concat: table.concat
-    escape: (value) =>
-      escaped = tostring(value)\gsub "[<>&]", escapes
-      @insert escaped
-  }
+pair= (buffer = {}) ->
+  if type(buffer) != 'table'
+    error 2, "Argument must be a table or nil"
+
+  environment = {}
+  escape = (value) ->
+    tostring(value)\gsub [[[<>&]'"]], escapes
 
   attrib = (args) ->
     res = setmetatable {}, __tostring: =>
@@ -42,25 +41,24 @@ pair = ->
         when 'function'
           arg!
         else
-          buffer\insert tostring arg
+          table.insert buffer, tostring arg
 
   environment.raw = (text) ->
-    buffer\insert text
+    table.insert buffer, text
 
   environment.text = (text) ->
-    buffer\escape text
+    table.insert buffer, escape text
 
   setmetatable environment, {
     __index: (key) =>
       _ENV[key] or (...) ->
-        buffer\insert "<#{key}#{attrib{...}}>"
+        table.insert buffer, "<#{key}#{attrib{...}}>"
         handle{...}
-        buffer\insert "</#{key}>" unless void[key]
+        table.insert buffer, "</#{key}>" unless void[key]
   }
   return environment, buffer
 
-
-render = (fnc) ->
+build = (fnc) ->
   env, buf = pair!
   hlp = do -- gotta love this syntax ♥
     _ENV = env
@@ -68,6 +66,9 @@ render = (fnc) ->
   assert(type(fnc)=='function', 'wrong argument to render, expecting function')
   debug.upvaluejoin(fnc, 1, hlp, 1) -- Set environment
   fnc!
-  return buf\concat '\n'
+  buf
 
-{:render, :pair}
+render = (fnc) ->
+  return table.concat build(fnc), '\n'
+
+{:render, :build, :pair}
