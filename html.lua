@@ -135,6 +135,10 @@ pair = function(buffer)
       return table.insert(buffer, "</" .. tostring(tagname) .. ">")
     end
   end
+  local _ENV
+  if _VERSION == 'Lua 5.1' then
+    _ENV = getfenv()
+  end
   setmetatable(environment, {
     __index = function(self, key)
       return _ENV[key] or function(...)
@@ -148,7 +152,7 @@ local build
 if _VERSION == 'Lua 5.1' then
   build = function(fnc)
     assert(type(fnc) == 'function', 'wrong argument to render, expecting function')
-    local env, buf = pair
+    local env, buf = pair()
     setfenv(fnc, env)
     fnc()
     return buf
@@ -166,15 +170,12 @@ else
     end
     debug.upvaluejoin(fnc, 1, hlp, 1)
     fnc()
-    buf.render = function(self)
-      return table.concat(self, "\n")
-    end
     return buf
   end
 end
 local render
 render = function(fnc)
-  return build(fnc):render()
+  return table.concat(build(fnc), "\n")
 end
 return {
   render = render,
