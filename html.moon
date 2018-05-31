@@ -21,16 +21,35 @@ pair= (buffer = {}) ->
   escape = (value) ->
     (=>@) tostring(value)\gsub [[[<>&]'"]], escapes
 
+  split = (tab) ->
+    ary = {}
+    for k,v in ipairs(tab) do
+      ary[k]=v
+      tab[k]=nil
+    return ary, tab
+
+  flatten = (tab, flat={}) ->
+    for key, value in pairs tab
+      if type(key)=="number"
+        if type(value)=="table"
+          flatten(value, flat)
+        else
+          flat[#flat+1]=value
+      else
+        if type(value)=="table"
+          flat[key] = table.concat value ' '
+        else
+          flat[key] = value
+    flat
+
   attrib = (args) ->
     res = setmetatable {}, __tostring: =>
       tab = ["#{key}=\"#{value}\"" for key, value in pairs(@) when type(value)=='string' or type(value)=='number']
       #tab > 0 and ' '..table.concat(tab,' ') or ''
-    for arg in *args
-      if type(arg) == 'table'
-        for key, value in pairs(arg)
-          if type(key)=='string'
-            res[key] = value
-            r = true
+    for key, value in pairs(args)
+      if type(key)=='string'
+        res[key] = value
+        r = true
     return res
 
   handle = (args) ->
@@ -50,8 +69,9 @@ pair= (buffer = {}) ->
     table.insert buffer, (escape text)
 
   environment.tag = (tagname, ...) ->
-    table.insert buffer, "<#{tagname}#{attrib{...}}>"
-    handle{...}
+    inner, args = split flatten {...}
+    table.insert buffer, "<#{tagname}#{attrib args}>"
+    handle inner
     table.insert buffer, "</#{tagname}>" unless void[key]
 
 
