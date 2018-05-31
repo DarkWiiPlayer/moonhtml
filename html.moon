@@ -82,7 +82,7 @@ pair= (buffer = {}) ->
   }
   return environment, buffer
 
-build = if _VERSION == 'lua 5.1' then
+build = if _VERSION == 'Lua 5.1' then
   (fnc) ->
     assert(type(fnc)=='function', 'wrong argument to render, expecting function')
     env, buf = pair

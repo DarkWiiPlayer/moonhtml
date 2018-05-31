@@ -145,7 +145,7 @@ pair = function(buffer)
   return environment, buffer
 end
 local build
-if _VERSION == 'lua 5.1' then
+if _VERSION == 'Lua 5.1' then
   build = function(fnc)
     assert(type(fnc) == 'function', 'wrong argument to render, expecting function')
     local env, buf = pair
