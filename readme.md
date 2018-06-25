@@ -43,7 +43,7 @@ Changelog
 
 ### 1.1.0
 
-- MoonXML doesn't have any concept of buffers anymore, instead you pass it a function that handles your output (see examples)
+- MoonHTML doesn't have any concept of buffers anymore, instead you pass it a function that handles your output (see examples)
 - The pair method is gone, and instead there is emv, which only returns an environment
 - build now returns a function, which in turn accepts as its first argument a function that handles output. All aditional arguments are passed to the function provided by the user
 
