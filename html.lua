@@ -32,15 +32,13 @@ local escapes = {
   ['"'] = '&quot;',
   ["'"] = '&#039;'
 }
-local pair
-pair = function(buffer)
-  if buffer == nil then
-    buffer = { }
-  end
-  if type(buffer) ~= 'table' then
-    error(2, "Argument must be a table or nil")
-  end
+local env
+env = function()
   local environment = { }
+  local print
+  print = function(...)
+    return environment.print(...)
+  end
   local escape
   escape = function(value)
     return (function(self)
@@ -115,70 +113,81 @@ pair = function(buffer)
       elseif 'function' == _exp_0 then
         arg()
       else
-        table.insert(buffer, tostring(arg))
+        print(tostring(arg))
       end
     end
   end
   environment.raw = function(text)
-    return table.insert(buffer, text)
+    return print(text)
   end
   environment.text = function(text)
-    return table.insert(buffer, (escape(text)))
+    return environment.raw(escape(text))
   end
   environment.tag = function(tagname, ...)
     local inner, args = split(flatten({
       ...
     }))
-    table.insert(buffer, "<" .. tostring(tagname) .. tostring(attrib(args)) .. ">")
-    handle(inner)
-    if not (void[key]) then
-      return table.insert(buffer, "</" .. tostring(tagname) .. ">")
+    if not (void[tagname] and #inner == 0) then
+      print("<" .. tostring(tagname) .. tostring(attrib(args)) .. ">")
+      if not (#inner == 0) then
+        handle(inner)
+      end
+      if not ((#inner == 0)) then
+        return print("</" .. tostring(tagname) .. ">")
+      end
+    else
+      return print("<" .. tostring(tagname) .. tostring(attrib(args)) .. ">")
     end
-  end
-  local _ENV
-  if _VERSION == 'Lua 5.1' then
-    _ENV = getfenv()
   end
   setmetatable(environment, {
     __index = function(self, key)
-      return _ENV[key] or function(...)
+      return (_ENV or _G)[key] or function(...)
         return environment.tag(key, ...)
       end
     end
   })
-  return environment, buffer
+  return environment
 end
 local build
 if _VERSION == 'Lua 5.1' then
   build = function(fnc)
     assert(type(fnc) == 'function', 'wrong argument to render, expecting function')
-    local env, buf = pair()
+    env = env()
     setfenv(fnc, env)
-    fnc()
-    return buf
+    return function(out, ...)
+      if out == nil then
+        out = print
+      end
+      env.raw = print
+      return fnc(...)
+    end
   end
 else
   build = function(fnc)
     assert(type(fnc) == 'function', 'wrong argument to render, expecting function')
-    local env, buf = pair()
-    local hlp
+    env = env()
     do
+      local upvaluejoin = debug.upvaluejoin
       local _ENV = env
-      hlp = function()
-        return aaaaa
-      end
+      upvaluejoin(fnc, 1, (function()
+        return aaaa()
+      end), 1)
     end
-    debug.upvaluejoin(fnc, 1, hlp, 1)
-    fnc()
-    return buf
+    return function(out, ...)
+      if out == nil then
+        out = print
+      end
+      env.print = out
+      return fnc(...)
+    end
   end
 end
 local render
-render = function(fnc)
-  return table.concat(build(fnc), "\n")
+render = function(out, fnc)
+  return build(fnc)(out)
 end
 return {
   render = render,
   build = build,
-  pair = pair
+  env = env
 }
