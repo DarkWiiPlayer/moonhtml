@@ -152,23 +152,23 @@ local build
 if _VERSION == 'Lua 5.1' then
   build = function(fnc)
     assert(type(fnc) == 'function', 'wrong argument to render, expecting function')
-    env = env()
-    setfenv(fnc, env)
+    local environment = env()
+    setfenv(fnc, environment)
     return function(out, ...)
       if out == nil then
         out = print
       end
-      env.raw = print
+      environment.raw = print
       return fnc(...)
     end
   end
 else
   build = function(fnc)
     assert(type(fnc) == 'function', 'wrong argument to render, expecting function')
-    env = env()
+    local environment = env()
     do
       local upvaluejoin = debug.upvaluejoin
-      local _ENV = env
+      local _ENV = environment
       upvaluejoin(fnc, 1, (function()
         return aaaa()
       end), 1)
@@ -177,7 +177,7 @@ else
       if out == nil then
         out = print
       end
-      env.print = out
+      environment.print = out
       return fnc(...)
     end
   end
