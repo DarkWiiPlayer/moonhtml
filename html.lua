@@ -34,11 +34,15 @@ local escapes = {
 }
 local env
 env = function()
-  local environment = { }
-  local print
-  print = function(...)
-    return environment.print(...)
-  end
+  local environment = setmetatable({ }, {
+    __index = function(self, key)
+      return (_ENV or _G)[key] or function(...)
+        return self.tag(key, ...)
+      end
+    end
+  })
+  local _G = environment
+  local _ENV = environment
   local escape
   escape = function(value)
     return (function(self)
@@ -75,6 +79,9 @@ env = function()
       end
     end
     return flat
+  end
+  html5 = function()
+    return print('<!doctype html>')
   end
   local attrib
   attrib = function(args)
@@ -139,13 +146,6 @@ env = function()
       return print("<" .. tostring(tagname) .. tostring(attrib(args)) .. ">")
     end
   end
-  setmetatable(environment, {
-    __index = function(self, key)
-      return (_ENV or _G)[key] or function(...)
-        return environment.tag(key, ...)
-      end
-    end
-  })
   return environment
 end
 local build

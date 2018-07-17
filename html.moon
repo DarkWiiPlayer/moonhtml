@@ -44,6 +44,9 @@ env = ->
 				else
 					flat[key] = value
 		flat
+	
+	export html5 = ->
+		print '<!doctype html>'
 
 	attrib = (args) ->
 		res = setmetatable {}, __tostring: =>
