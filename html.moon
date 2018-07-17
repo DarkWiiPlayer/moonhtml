@@ -14,8 +14,13 @@ escapes = {
 }
 
 env = ->
-	environment = {}
-	print = (...) -> environment.print ...
+	environment = setmetatable {}, {
+		__index: (key) =>
+			(_ENV or _G)[key] or (...) ->
+				@.tag(key, ...)
+	}
+	_G   = environment -- Lua 5.1
+	_ENV = environment -- Lua 5.2 +
 	escape = (value) ->
 		(=>@) tostring(value)\gsub [[[<>&]'"]], escapes
 
@@ -75,11 +80,6 @@ env = ->
 		else
 			print "<#{tagname}#{attrib args}>"
 
-	setmetatable environment, {
-		__index: (key) =>
-			(_ENV or _G)[key] or (...) ->
-				environment.tag(key, ...)
-	}
 	return environment
 
 build = if _VERSION == 'Lua 5.1' then
