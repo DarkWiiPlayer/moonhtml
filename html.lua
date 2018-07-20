@@ -139,9 +139,7 @@ env = function()
       if not (#inner == 0) then
         handle(inner)
       end
-      if not ((#inner == 0)) then
-        return print("</" .. tostring(tagname) .. ">")
-      end
+      return print("</" .. tostring(tagname) .. ">")
     else
       return print("<" .. tostring(tagname) .. tostring(attrib(args)) .. ">")
     end
