@@ -79,7 +79,7 @@ env = ->
 		unless void[tagname] and #inner==0
 			print "<#{tagname}#{attrib args}>"
 			handle inner unless #inner==0
-			print "</#{tagname}>" unless (#inner==0)
+			print "</#{tagname}>"
 		else
 			print "<#{tagname}#{attrib args}>"
 
