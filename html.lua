@@ -158,7 +158,7 @@ if _VERSION == 'Lua 5.1' then
       if out == nil then
         out = print
       end
-      environment.raw = print
+      environment.print = out
       return fnc(...)
     end
   end
