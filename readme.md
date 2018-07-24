@@ -48,6 +48,8 @@ Changelog
 ### Development
 
 - Removed `raw` method, use `print` instead.
+- Removed bug in 5.2+ changing global \_G.
+- Bug where all empty HTML tags had no closing tags has been fixed.
 
 ### 1.1.0
 
