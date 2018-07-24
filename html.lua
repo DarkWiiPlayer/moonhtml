@@ -46,11 +46,13 @@ env = function()
   else
     local _ENV = environment
   end
-  local escape
   escape = function(value)
     return (function(self)
       return self
     end)(tostring(value):gsub([[[<>&]'"]], escapes))
+  end
+  text = function(text)
+    return print(escape(text))
   end
   local split
   split = function(tab)
@@ -82,9 +84,6 @@ env = function()
       end
     end
     return flat
-  end
-  html5 = function()
-    return print('<!doctype html>')
   end
   local attrib
   attrib = function(args)
@@ -127,12 +126,6 @@ env = function()
       end
     end
   end
-  environment.raw = function(text)
-    return print(text)
-  end
-  environment.text = function(text)
-    return environment.raw(escape(text))
-  end
   environment.tag = function(tagname, ...)
     local inner, args = split(flatten({
       ...
@@ -146,6 +139,9 @@ env = function()
     else
       return print("<" .. tostring(tagname) .. tostring(attrib(args)) .. ">")
     end
+  end
+  html5 = function()
+    return print('<!doctype html>')
   end
   return environment
 end

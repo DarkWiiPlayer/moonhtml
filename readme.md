@@ -10,7 +10,7 @@ The code should pretty much explain itself, but here's how it works:
 		p {class: 'my_class'}, ->
 			text 'How are you today?'
 			br!
-			raw 'you can still write <b>unescaped</b> HTML'
+			print 'you can still write <b>unescaped</b> HTML'
 
 should generate the following code
 
@@ -23,10 +23,14 @@ should generate the following code
 	you can still write <b>unescaped</b> HTML
 	</p>
 
+Note the use of `print` inside the function. The render method overrides the default `print` method inside the function to whatever output function is given to it.
+
 Warning
 -----
 
 Because of how lua works, once a function is passed into `render` or `build`, its upvalues are permanently changed. This means functions may become otherwise unusable, and shouldn't be used for more than one template at the same time. Seriously, things might explode and kittens may die.
+
+Also, on Lua 5.2 upwards, function einvironments are tricky. They are passed as normal upvalues and may not even be the first upvalue passed to the function. In some future version the impact of this behavior will be minimized by a functionality to load lua files with the builder environment directly, similar to require. This will both fix the upvalue problem and allow for nicer separation of logic from layout.
 
 Sort-Of Reference
 -----
@@ -40,6 +44,10 @@ Not really an issue. This is *not* a 1:1 clone of the lapis generator syntax, bu
 
 Changelog
 -----
+
+### Development
+
+- Removed `raw` method, use `print` instead.
 
 ### 1.1.0
 

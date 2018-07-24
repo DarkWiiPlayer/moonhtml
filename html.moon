@@ -24,8 +24,11 @@ env = ->
 	else
 		_ENV = environment -- Lua 5.2 +
 
-	escape = (value) ->
+	export escape = (value) ->
 		(=>@) tostring(value)\gsub [[[<>&]'"]], escapes
+
+	export text = (text) ->
+		print escape text
 
 	split = (tab) ->
 		ary = {}
@@ -47,9 +50,6 @@ env = ->
 				else
 					flat[key] = value
 		flat
-	
-	export html5 = ->
-		print '<!doctype html>'
 
 	attrib = (args) ->
 		res = setmetatable {}, __tostring: =>
@@ -71,12 +71,6 @@ env = ->
 				else
 					print tostring arg
 
-	environment.raw = (text) ->
-		print text
-
-	environment.text = (text) ->
-		environment.raw escape text
-
 	environment.tag = (tagname, ...) ->
 		inner, args = split flatten {...}
 		unless void[tagname] and #inner==0
@@ -85,6 +79,9 @@ env = ->
 			print "</#{tagname}>"
 		else
 			print "<#{tagname}#{attrib args}>"
+	
+	export html5 = ->
+		print '<!doctype html>'
 
 	return environment
 
