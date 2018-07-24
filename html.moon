@@ -19,8 +19,11 @@ env = ->
 			(_ENV or _G)[key] or (...) ->
 				@.tag(key, ...)
 	}
-	_G   = environment -- Lua 5.1
-	_ENV = environment -- Lua 5.2 +
+	if _VERSION == 'Lua 5.1'
+		_G   = environment -- Lua 5.1
+	else
+		_ENV = environment -- Lua 5.2 +
+
 	escape = (value) ->
 		(=>@) tostring(value)\gsub [[[<>&]'"]], escapes
 

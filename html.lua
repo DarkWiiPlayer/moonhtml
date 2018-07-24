@@ -41,8 +41,11 @@ env = function()
       end
     end
   })
-  local _G = environment
-  local _ENV = environment
+  if _VERSION == 'Lua 5.1' then
+    local _G = environment
+  else
+    local _ENV = environment
+  end
   local escape
   escape = function(value)
     return (function(self)
